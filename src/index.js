@@ -15,11 +15,13 @@ import githubPAT from './gh_pat.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const clonesDir = `${__dirname.replace('/src', '')}/clones`;
+const clonesDir = `${__dirname.replace('\\src', '')}\\clones`;
 
-const distDir = `${__dirname.replace('/src', '')}/dist`;
+const distDir = `${__dirname.replace('\\src', '')}\\dist`;
 
-const modulesDir = `${distDir}/module`;
+console.log(__dirname, distDir)
+
+const modulesDir = `${distDir}\\module`;
 
 const resetDir = (dir) => {
   rmSync(dir, { recursive: true, force: true });
@@ -35,14 +37,14 @@ if (process.argv[2] === '-f') {
 
 let previous = [];
 if (existsSync(clonesDir)) {
-  for (const cloneDir of glob.sync(`${clonesDir}/*/*`)) {
+  for (const cloneDir of glob.sync(`${clonesDir}\\*\\*`)) {
     process.chdir(cloneDir);
     
     const currentHash = await new Promise((res) => exec(`git rev-parse HEAD`, (err, stdout) => res(stdout.trim())));
 
     const moduleInRepos = ModuleRepos.map(
       (x) => x.modules.filter(
-        (y) => y[0] === cloneDir.replace(`${clonesDir}/`, '') && (y[1] === currentHash || !y[1])
+        (y) => y[0] === cloneDir.replace(`${clonesDir}\\`, '') && (y[1] === currentHash || !y[1])
       )
     ).find((x) => x.length > 0);
 
@@ -85,7 +87,7 @@ for (const parentRepo of ModuleRepos) {
     meta: parentRepo.meta
   };
 
-  const repoJsonPath = `${distDir}/${parentRepo.filename}.json`;
+  const repoJsonPath = `${distDir}\\${parentRepo.filename}.json`;
 
   const currentRepoJson = existsSync(repoJsonPath) ? JSON.parse(readFileSync(repoJsonPath, 'utf8')) : undefined;
 
@@ -93,14 +95,14 @@ for (const parentRepo of ModuleRepos) {
     console.time(repo.slice(0, 2).join(' @ ')+`${repo[2] ? ` ${repo[2]}` : ''}`);
     
     const name = repo[0];
-    const cloneDir = `${clonesDir}/${name}`;
+    const cloneDir = `${clonesDir}\\${name}`;
     let moduleDir = repo[2] || '';
 
     try {
       if (previous.includes(repo)) {
         let currentModule = currentRepoJson.modules.filter((x) => x.github.repo === repo[0]);
         if (currentModule.length > 1) {
-          const manifest = JSON.parse(readFileSync(`${cloneDir}${moduleDir}/goosemodModule.json`));
+          const manifest = JSON.parse(readFileSync(`${cloneDir}${moduleDir}\\goosemodModule.json`));
 
           currentModule = currentModule.find((x) => x.name === manifest.name);
         } else {
@@ -159,19 +161,19 @@ for (const parentRepo of ModuleRepos) {
       }
     }
     
-    const manifest = JSON.parse(readFileSync(`${cloneDir}${moduleDir}/goosemodModule.json`));
+    const manifest = JSON.parse(readFileSync(`${cloneDir}${moduleDir}\\goosemodModule.json`));
     
     // console.log(manifest);
     
     const outFile = `${manifest.name}.js`;
   
-    const bundler = new Parcel(`${cloneDir}${moduleDir}/${manifest.main}`, Object.assign(parcelOptions, {
+    const bundler = new Parcel(`${cloneDir}${moduleDir}\\${manifest.main}`, Object.assign(parcelOptions, {
       outFile
     }));
     
     const bundle = await bundler.bundle();
     
-    const outPath = `${modulesDir}/${outFile}`;
+    const outPath = `${modulesDir}\\${outFile}`;
     let jsCode = readFileSync(outPath, 'utf8');
     
     jsCode = `${jsCode};parcelRequire('${bundle.entryAsset.basename}').default`; // Make eval return the index module's default export
@@ -227,6 +229,6 @@ for (const parentRepo of ModuleRepos) {
   oldTotalModulesJson = oldTotalModulesJson.concat(moduleJson.modules);
 }
 
-writeFileSync(`${distDir}/modules.json`, JSON.stringify(oldTotalModulesJson));
+writeFileSync(`${distDir}\\modules.json`, JSON.stringify(oldTotalModulesJson));
 
-copyFileSync(`${__dirname.replace('/src', '')}/_headers`, `${distDir}/_headers`);
+copyFileSync(`${__dirname.replace('\\src', '')}\\_headers`, `${distDir}\\_headers`);
