@@ -1,13 +1,13 @@
-import duckling from "./duckling.js";
+import usrbg from "./usrbg.js";
 
 export default [
   {
     meta: {
-      name: "DucklingRepo - Third Party Repo",
-      description: "creatable's super cool third party repo",
+      name: "Hax4dayz's module repo thingy",
+      description: "oh oh, stinkey",
     },
 
-    filename: "duckling",
-    modules: duckling,
+    filename: "usrbg",
+    modules: usrbg,
   },
 ];
